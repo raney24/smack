@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block content %}
+
+<p>name: {{ event.name }}</p>
+<p>Long: {{ event.lon }}</p>
+<p>Lat: {{ event.lat }}</p>
+<p>City: {{ event.city }}</p>
+<h3>Smack Talk</h3>
+{% for s in event.smackpost_set.all %}
+	<p>{{ s.post }}</p>
+{% endfor %}
+
+<a href="/events/{{event.pk}}/post">Add smack</a>
+
+{% endblock %}

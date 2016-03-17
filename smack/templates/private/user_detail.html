@@ -1,0 +1,6 @@
+<legend>{{ user.username }}'s Profile</legend>
+<ul>
+	{% for smack_post in user.smackpost_set.all %}
+	<li>Event: {{ smack_post.event }} - {{ smack_post.post }}</li>
+	{% endfor %}
+</ul>

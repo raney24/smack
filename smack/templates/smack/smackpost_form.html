@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block content %}
+<style>
+.hidden-fields {
+	display: none;
+}
+</style>
+<form method="post" action="">
+	{% csrf_token %}
+	{{ form.post }}
+	{{ form.event }}
+	<div class="hidden-fields">
+		{{ form.lon }}
+		{{ form.lat }}
+	</div>
+	<input type="submit" value="Add" id="addPost">
+
+</form>
+
+<script>
+$(document).ready(function() {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    });
+    function showPosition(position) {
+    	console.log(position.coords);
+    	lon = position.coords.longitude;
+    	lat = position.coords.latitude;
+    	var roundedLon = lon.toFixed(2);
+    	var roundedLat = lat.toFixed(2);
+    	console.log(roundedLon);
+    	$("#id_lon").val(roundedLon);
+    	$("#id_lat").val(roundedLat);
+    }
+
+</script>
+
+{% endblock %}

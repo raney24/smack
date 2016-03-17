@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <form class="form-horizontal" action="/profile/edit/" method="post">
+        {% csrf_token %}
+        <fieldset>
+            <h3>{{user.username}}</h3>
+            <legend>Edit your profile</legend>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="first_name" class="col-lg-2 control-label">College</label>
+                        <div class="col-lg-10">
+                            {{ form.college }}
+                            {% for error in form.college.errors %}
+                                <p class="text-danger">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <span> <a href="/profile/change_password">Change Password</a>
+            </div>
+
+            <div class="form-group">
+                <div class="col-lg-10 col-lg-offset-2">
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <a class="btn btn-primary" href="/profile/view_posts">View your profile</a>
+                </div>
+            </div>
+
+        </fieldset>
+    </form>
+
+{% endblock %}

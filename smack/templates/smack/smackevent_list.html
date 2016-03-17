@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block content %}
+<p>events: </p>
+{% for event in events %}
+	<p><a href="/events/{{event.pk}}">{{ event.name }}</a></p>
+
+{% endfor %}
+{% endblock %}
