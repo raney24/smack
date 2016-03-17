@@ -46,6 +46,10 @@ class SmackPostCreateView(CreateView):
 		f.save()
 		return super(SmackPostCreateView, self).form_valid(form)
 
+class SmackPostDeleteView(DeleteView):
+    model = SmackPost
+    success_url = '/profile/view_posts'
+
 
 """ USER VIEWS """
 from django.contrib import messages
@@ -126,7 +130,7 @@ def edit_profile(request):
 
     elif request.method == 'POST':
         profile_form = SmackerForm(request.POST, instance=user)
-        if profile_form.is_valid() and user_form.is_valid():
+        if profile_form.is_valid():
             profile = profile_form.save(commit=False)
             profile.save()
             messages.success(request, "Profile settings saved")

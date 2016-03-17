@@ -1,6 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
 <legend>{{ user.username }}'s Profile</legend>
 <ul>
 	{% for smack_post in user.smackpost_set.all %}
-	<li>Event: {{ smack_post.event }} - {{ smack_post.post }}</li>
+	<li>
+		Event: {{ smack_post.event }} - {{ smack_post.post }} 
+		<form method="post" action="{% url 'delete_post' pk=smack_post.pk %}"> 
+			{% csrf_token %}
+			<button type="submit" class="btn btn-danger">Delete Post</button>
+		</form>
+	</li>
 	{% endfor %}
 </ul>
+
+{% endblock %}

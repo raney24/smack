@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^events/$', SmackEventListView.as_view(), name='events'),
     url(r'^events/(?P<pk>\d+)/$', SmackEventDetailView.as_view()),
     url(r'^events/create/$', SmackEventCreateView.as_view(), name='create_events'),
+    url(r'^events/delete/(?P<pk>\d+)$', SmackPostDeleteView.as_view(), name='delete_post'),
 
     url(r'^events/(?P<pk>\d+)/post/$', SmackPostCreateView.as_view(), name='create_posts'),
 
@@ -41,10 +42,10 @@ urlpatterns = [
     url(r'^logout/$', 'django.contrib.auth.views.logout', { 'next_page':"/events" }, name="Logout"),
 
     url(r'^register/$', register, name="Register"),
-    url(r'^profile/edit/$', edit_profile, name="Edit Profile"),
-    url(r'^profile/change_password/$', login_required('django.contrib.auth.views.password_change'), 
+    url(r'^profile/edit/$', login_required(edit_profile, login_url="Login"), name="Edit Profile"),
+    url(r'^profile/change_password/$', 'django.contrib.auth.views.password_change', 
         {'template_name': 'private/password_change_form.html'},
-        name="Change Password"),
+        name="ChangePassword"),
     url(r'^profile/edit/$', 'django.contrib.auth.views.password_change_done', name="password_change_done"),
     url(r'^profile/view_posts$', login_required(SmackerProfileDetailView.as_view()), name="UserProfile"),
 
