@@ -20,6 +20,12 @@ class SmackPostForm(forms.ModelForm):
 		model = SmackPost
 		exclude = ('user', )
 
+class VoteForm(forms.ModelForm):
+	class Meta:
+		model = Vote
+		# exclude = ('voter', 'post')
+		fields = ('voter', 'post')
+
 """ USER FORMS """
 from django.contrib.auth.models import User
 

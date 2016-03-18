@@ -1,12 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
-from django.views.generic.edit import UpdateView, CreateView, UpdateView, DeleteView
+from django.views.generic.edit import UpdateView, CreateView, UpdateView, DeleteView, FormView
 from talk.utils.helpers import post_only, get_only
 from .models import *
 from .forms import *
+import json
+
 
 # Create your views here.
+
+class JSONFormMixin(object):
+    def create_response(self, vdict=dict(), valid_form=True):
+        response = HttpResponse(json.dumps(vdict), content_type='application/json')
+        response.status = 200 if valid_form else 500
+        return response
 
 class SmackEventListView(ListView):
 	model = SmackEvent
@@ -49,6 +57,59 @@ class SmackPostCreateView(CreateView):
 class SmackPostDeleteView(DeleteView):
     model = SmackPost
     success_url = '/profile/view_posts'
+
+
+
+
+class SmackVoteFormBaseView(FormView):
+    form_class = VoteForm
+    # def create_response(self, vdict=dict(), valid_form=True):
+    #     response = HtftpResponse(json.dumps(vdict))
+    #     response.status = 200 if valid_form else 500
+    #     return response
+    success_url = '/events'
+    template_name = 'smack/smackevent_detail.html'
+
+    def form_valid(self, form):
+        post = get_object_or_404(SmackPost, pk=form.data["post"])
+        user = self.request.user
+        prev_votes = Vote.objects.filter(voter=user, post=post)
+        has_voted = (len(prev_votes) > 0)
+
+        ret = {"success": 1}
+        if not has_voted:
+            # add vote
+            v = Vote.objects.create(voter=user, post=post)
+            ret["voteobj"] = v.id
+        else:
+            # delete vote
+            prev_votes[0].delete()
+            ret["unvoted"] = 1
+        # return self.create_response(ret, True)
+
+
+class SmackVoteFormView(JSONFormMixin, SmackVoteFormBaseView):
+    pass
+
+class VoteView(View):
+    model = Vote
+    form_class = VoteForm
+    success_url = '/events'
+
+    def form_valid(self, form):
+        post = SmackPost.objects.get(pk=self.request.pk)
+        user = self.request.user
+
+def vote(request, pk):
+    if request.user.is_authenticated:
+        user = Smacker.objects.get(user=request.user)
+        post = SmackPost.objects.get(pk=pk)
+        vote_value = post.vote_count
+        post.vote_count = vote_value + 1
+        post.save
+        print post
+        print post.vote_count
+        return redirect('/events')
 
 
 """ USER VIEWS """

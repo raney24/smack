@@ -26,12 +26,16 @@ class SmackEvent(models.Model):
 		return self.name
 
 from django import forms
+
 class SmackPost(models.Model):
 	post = models.CharField(max_length=160)
 	lon = models.DecimalField(max_digits=11, decimal_places=6)
 	lat = models.DecimalField(max_digits=11, decimal_places=6)
 	event = models.ForeignKey(SmackEvent, blank=True)
 	user = models.ForeignKey(User, blank=True)
+	vote_count = models.IntegerField(default=0)
+
+	objects = models.Manager()
 
 	error_location = "Your location isn't valid"
 
@@ -45,10 +49,15 @@ class SmackPost(models.Model):
 		else:
 			raise forms.ValidationError("Invalid Location")	
 
-		
-
 	def __unicode__(self):
 		return self.post
+
+class Vote(models.Model):
+	voter = models.ForeignKey(User)
+	post = models.ForeignKey(SmackPost)
+
+	def __unicode__(self):
+		return "%s voted %s" % (self.voter.username, self.post)
 
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -64,6 +73,9 @@ class Smacker(models.Model):
 			Smacker.objects.create(user=instance)
 
 	post_save.connect(create_smacker, sender=User)
+
+
+
 
 
 
