@@ -6,9 +6,16 @@ from talk.utils.helpers import post_only, get_only
 from .models import *
 from .forms import *
 import json
-
+from rest_framework.renderers import JSONRenderer
+from django.http import HttpResponse
 
 # Create your views here.
+
+class JSONResponse(HttpResponse):
+    def __init__(self, data, **kwargs):
+        content = JSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
 
 class JSONFormMixin(object):
     def create_response(self, vdict=dict(), valid_form=True):
@@ -23,6 +30,21 @@ class SmackEventListView(ListView):
 class SmackEventDetailView(DetailView):
 	model = SmackEvent
 	context_object_name = 'event'
+	# queryset = SmackPost.objects.order_by('vote_count')
+
+	def get_context_data(self, **kwargs):
+		context = super(SmackEventDetailView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated:
+			vote_tuple = Vote.objects.filter(voter = self.request.user).values_list('voter_id')
+			list_vote_list = [list(elem) for elem in vote_tuple]
+			list_vote = [item for sublist in list_vote_list for item in sublist]
+			print list_vote
+			# for vote in vote_list:
+
+			context['vote_list'] = list_vote
+			return context
+		else:
+			context['vote_list'] = None
 	
 	# def get_object(self, queryset=None):
 	# 	event = super(SmackEventDetailView, self).get_object(queryset)
@@ -41,7 +63,9 @@ class SmackEventCreateView(CreateView):
 
 class SmackPostListView(ListView):
 	model = SmackPost
-	context_object_name = 'posts'
+	context_object_name = 'post_list'
+
+
 
 class SmackPostCreateView(CreateView):
 	model = SmackPost
@@ -100,16 +124,35 @@ class VoteView(View):
         post = SmackPost.objects.get(pk=self.request.pk)
         user = self.request.user
 
+from django.http import HttpResponseRedirect
+from django.forms.models import model_to_dict
 def vote(request, pk):
-    if request.user.is_authenticated:
-        user = Smacker.objects.get(user=request.user)
-        post = SmackPost.objects.get(pk=pk)
-        vote_value = post.vote_count
-        post.vote_count = vote_value + 1
-        post.save
-        print post
-        print post.vote_count
-        return redirect('/events')
+    if request.method == 'POST':
+
+        if request.user.is_authenticated:
+            vote_form = VoteForm(request.POST)
+            if vote_form.is_valid():
+                user = Smacker.objects.get(user=request.user)
+                post = SmackPost.objects.get(pk=pk)
+                v = vote_form.save(commit=False)
+                v.voter = user.user
+                v.post = post
+                # if post.
+
+                post.vote_count = post.vote_count + 1
+
+                if not Vote.objects.filter(voter = user.user, post = post).exists():
+                    post.save()
+                    v.save()
+                    print "saving"
+                    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+                
+                return HttpResponse("Already Voted")
+            # return HttpResponse(
+            #     json.dumps(post.post),
+            #     content_type="application/json"
+            # )
+
 
 
 """ USER VIEWS """

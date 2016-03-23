@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from geopy.geocoders import Nominatim
+import json
+from django.http import HttpResponseRedirect
 
 class SmackEvent(models.Model):
 	name = models.CharField(max_length=75)
@@ -23,7 +25,7 @@ class SmackEvent(models.Model):
 		super(SmackEvent, self).save(**kwargs)
 
 	def __unicode__(self):
-		return self.name
+		return self.name		
 
 from django import forms
 
@@ -33,6 +35,7 @@ class SmackPost(models.Model):
 	lat = models.DecimalField(max_digits=11, decimal_places=6)
 	event = models.ForeignKey(SmackEvent, blank=True)
 	user = models.ForeignKey(User, blank=True)
+	votes = models.ManyToManyField('Vote')
 	vote_count = models.IntegerField(default=0)
 
 	objects = models.Manager()
@@ -48,6 +51,9 @@ class SmackPost(models.Model):
 			super(SmackPost, self).save(**kwargs)
 		else:
 			raise forms.ValidationError("Invalid Location")	
+
+	class Meta:
+		ordering = ['-vote_count']
 
 	def __unicode__(self):
 		return self.post

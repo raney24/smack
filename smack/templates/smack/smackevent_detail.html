@@ -9,18 +9,23 @@
 <h3>Smack Talk</h3>
 {% for smack_post in event.smackpost_set.all %}
 	<p>{{ smack_post.post }}</p>
-	<form method="post" action="{% url 'vote' pk=smack_post.pk %} " class="vote_form">
-	  <li> {{ smack_post.votes }}
+	<form method="post" action="{% url 'vote' pk=smack_post.pk %} " id="vote-form" class="vote_form">
+	  <li> <span id="vote-count">{{ smack_post.vote_count }}</span>
 		  {% csrf_token %}
 		  <input type="hidden" id="id_link" name="post" class="hidden_id" value="{{ smack_post.pk }}" />
 		  <input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}" />
-		  {% if not user.is_authenticated %}
-  		  	<button disabled title="Please login to vote">+</button>
-		  {% else %}
+		  {% if user.is_authenticated and not smack_post.voted %}
   		  	<button type="submit">Up</button>
+  		  {% endif %}
+  		  {% if smack_post.voter == user %}
+  		  Voted
   		  {% endif %}
 	  </li>
     </form>
+{% endfor %}
+
+{% for vote in vote_list %}
+	{{ vote.voter }}
 {% endfor %}
 
 <a href="/events/{{event.pk}}/post">Add smack</a>
