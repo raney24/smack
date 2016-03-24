@@ -18,13 +18,13 @@ class SmackPostForm(forms.ModelForm):
 	lat = forms.DecimalField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
 	class Meta:
 		model = SmackPost
-		exclude = ('user', )
+		fields = ('post', 'lon', 'lat', 'event')
+		# fields = ('__all__')
 
-class VoteForm(forms.ModelForm):
-	class Meta:
-		model = Vote
-		# exclude = ('voter', 'post')
-		fields = ('voter', 'post')
+# class VoteForm(forms.ModelForm):
+# 	class Meta:
+# 		# exclude = ('voter', 'post')
+# 		fields = ('__all__')
 
 """ USER FORMS """
 from django.contrib.auth.models import User

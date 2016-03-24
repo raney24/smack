@@ -30,31 +30,6 @@ class SmackEventListView(ListView):
 class SmackEventDetailView(DetailView):
 	model = SmackEvent
 	context_object_name = 'event'
-	# queryset = SmackPost.objects.order_by('vote_count')
-
-	def get_context_data(self, **kwargs):
-		context = super(SmackEventDetailView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated:
-			vote_tuple = Vote.objects.filter(voter = self.request.user).values_list('voter_id')
-			list_vote_list = [list(elem) for elem in vote_tuple]
-			list_vote = [item for sublist in list_vote_list for item in sublist]
-			print list_vote
-			# for vote in vote_list:
-
-			context['vote_list'] = list_vote
-			return context
-		else:
-			context['vote_list'] = None
-	
-	# def get_object(self, queryset=None):
-	# 	event = super(SmackEventDetailView, self).get_object(queryset)
-	# 	SmackEvent.objects.get_object(event=event)
-	# 	return event
-
-	# def get_context_data(self, **kwargs):
-	# 	context = super(SmackEventDetailView, self).get_context_data(**kwargs)
-	# 	context['event_list'] = SmackEvent.objects.all()
-	# 	return context
 
 class SmackEventCreateView(CreateView):
 	model = SmackEvent
@@ -65,17 +40,32 @@ class SmackPostListView(ListView):
 	model = SmackPost
 	context_object_name = 'post_list'
 
-
-
-class SmackPostCreateView(CreateView):
+class SmackPostCreateView(FormView):
 	model = SmackPost
 	form_class = SmackPostForm
+	template_name = "smack/smackpost_form.html"
 	success_url = '/events'
 
+	# if request == 'POST':
+	# 	form_class = self.get_form_class()
+	# 	form = self.get_form(form_class)
+	# 	if form.is_valid():
+	# 		form.user = request.user
+	# 		self.form_valid(form, **kwargs)
+	# 	else: 
+	# 		forms.ValidationError("Invalid Location")
+
+	# def get_form_kwargs(self):
+	# 	kwargs = super(SmackPostCreateView, self).get_form_kwargs()
+	# 	kwargs['user'] = self.request.user
+	# 	print kwargs
+	# 	return kwargs
+
 	def form_valid(self, form):
-		f = form.save(commit=False)
-		f.user = self.request.user
-		f.save()
+		print "in form"
+		self.object = form.save(commit=False)
+		self.object.user = self.request.user
+		self.object.save()
 		return super(SmackPostCreateView, self).form_valid(form)
 
 class SmackPostDeleteView(DeleteView):
@@ -85,44 +75,36 @@ class SmackPostDeleteView(DeleteView):
 
 
 
-class SmackVoteFormBaseView(FormView):
-    form_class = VoteForm
-    # def create_response(self, vdict=dict(), valid_form=True):
-    #     response = HtftpResponse(json.dumps(vdict))
-    #     response.status = 200 if valid_form else 500
-    #     return response
-    success_url = '/events'
-    template_name = 'smack/smackevent_detail.html'
+# class SmackVoteFormBaseView(FormView):
+#     form_class = VoteForm
+#     # def create_response(self, vdict=dict(), valid_form=True):
+#     #     response = HtftpResponse(json.dumps(vdict))
+#     #     response.status = 200 if valid_form else 500
+#     #     return response
+#     success_url = '/events'
+#     template_name = 'smack/smackevent_detail.html'
 
-    def form_valid(self, form):
-        post = get_object_or_404(SmackPost, pk=form.data["post"])
-        user = self.request.user
-        prev_votes = Vote.objects.filter(voter=user, post=post)
-        has_voted = (len(prev_votes) > 0)
+#     def form_valid(self, form):
+#         post = get_object_or_404(SmackPost, pk=form.data["post"])
+#         user = self.request.user
+#         prev_votes = Vote.objects.filter(voter=user, post=post)
+#         has_voted = (len(prev_votes) > 0)
 
-        ret = {"success": 1}
-        if not has_voted:
-            # add vote
-            v = Vote.objects.create(voter=user, post=post)
-            ret["voteobj"] = v.id
-        else:
-            # delete vote
-            prev_votes[0].delete()
-            ret["unvoted"] = 1
-        # return self.create_response(ret, True)
+#         ret = {"success": 1}
+#         if not has_voted:
+#             # add vote
+#             v = Vote.objects.create(voter=user, post=post)
+#             ret["voteobj"] = v.id
+#         else:
+#             # delete vote
+#             prev_votes[0].delete()
+#             ret["unvoted"] = 1
+#         # return self.create_response(ret, True)
 
 
-class SmackVoteFormView(JSONFormMixin, SmackVoteFormBaseView):
-    pass
+# class SmackVoteFormView(JSONFormMixin, SmackVoteFormBaseView):
+#     pass
 
-class VoteView(View):
-    model = Vote
-    form_class = VoteForm
-    success_url = '/events'
-
-    def form_valid(self, form):
-        post = SmackPost.objects.get(pk=self.request.pk)
-        user = self.request.user
 
 from django.http import HttpResponseRedirect
 from django.forms.models import model_to_dict
@@ -130,28 +112,30 @@ def vote(request, pk):
     if request.method == 'POST':
 
         if request.user.is_authenticated:
-            vote_form = VoteForm(request.POST)
-            if vote_form.is_valid():
-                user = Smacker.objects.get(user=request.user)
-                post = SmackPost.objects.get(pk=pk)
-                v = vote_form.save(commit=False)
-                v.voter = user.user
-                v.post = post
-                # if post.
+            # vote_form = VoteForm(request.POST)
+            # if vote_form.is_valid():
+            smacker = Smacker.objects.get(user=request.user)
+            post = SmackPost.objects.get(pk=pk)
+            # v = vote_form.save(commit=False)
+            # v.voter = user.user
+            # v.post = post
+            # if post.
+            
 
-                post.vote_count = post.vote_count + 1
+            post.vote_count = post.vote_count + 1
 
-                if not Vote.objects.filter(voter = user.user, post = post).exists():
-                    post.save()
-                    v.save()
-                    print "saving"
-                    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-                
-                return HttpResponse("Already Voted")
+            if not post.voting_users.filter(user_id = smacker.user_id).exists():
+                post.voting_users.add(smacker)
+                post.save()
+                print "saving"
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+            
+            return HttpResponse("Already Voted")
             # return HttpResponse(
             #     json.dumps(post.post),
             #     content_type="application/json"
             # )
+
 
 
 

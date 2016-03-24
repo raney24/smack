@@ -35,8 +35,8 @@ class SmackPost(models.Model):
 	lat = models.DecimalField(max_digits=11, decimal_places=6)
 	event = models.ForeignKey(SmackEvent, blank=True)
 	user = models.ForeignKey(User, blank=True)
-	votes = models.ManyToManyField('Vote')
-	vote_count = models.IntegerField(default=0)
+	voting_users = models.ManyToManyField('Smacker')
+	vote_count = models.IntegerField(default=0) # create read only object
 
 	objects = models.Manager()
 
@@ -58,12 +58,12 @@ class SmackPost(models.Model):
 	def __unicode__(self):
 		return self.post
 
-class Vote(models.Model):
-	voter = models.ForeignKey(User)
-	post = models.ForeignKey(SmackPost)
+# class Vote(models.Model):
+# 	voter = models.ForeignKey(User)
+# 	post = models.ForeignKey(SmackPost)
 
-	def __unicode__(self):
-		return "%s voted %s" % (self.voter.username, self.post)
+# 	def __unicode__(self):
+# 		return "%s voted %s" % (self.voter.username, self.post)
 
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -79,6 +79,11 @@ class Smacker(models.Model):
 			Smacker.objects.create(user=instance)
 
 	post_save.connect(create_smacker, sender=User)
+
+
+	def post_votes(self):
+		return self.smackpost_set.values_list('id', flat=True)
+
 
 
 

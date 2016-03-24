@@ -30,7 +30,7 @@ urlpatterns = [
     url(r'^events/create/$', SmackEventCreateView.as_view(), name='create_events'),
     url(r'^events/delete/(?P<pk>\d+)$', SmackPostDeleteView.as_view(), name='delete_post'),
 
-    url(r'^events/(?P<pk>\d+)/post/$', SmackPostCreateView.as_view(), name='create_posts'),
+    url(r'^events/(?P<pk>\d+)/post/$', login_required(SmackPostCreateView.as_view()), name='create_posts'),
 
     url(r'^vote/(?P<pk>\d+)$', login_required(vote), name="vote"),
 
