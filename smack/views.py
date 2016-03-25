@@ -8,6 +8,7 @@ from .forms import *
 import json
 from rest_framework.renderers import JSONRenderer
 from django.http import HttpResponse
+from django.db.models import Count
 
 # Create your views here.
 
@@ -31,35 +32,35 @@ class SmackEventDetailView(DetailView):
 	model = SmackEvent
 	context_object_name = 'event'
 
+	def get_context_data(self, **kwargs):
+		context = super(SmackEventDetailView, self).get_context_data(**kwargs)
+		event_pk = kwargs['object'].pk
+		context['post_list'] = SmackPost.objects.filter(
+												event=event_pk).annotate(
+															num_votes=Count(
+																'voting_users')).order_by('-num_votes')
+		return context
+
 class SmackEventCreateView(CreateView):
 	model = SmackEvent
 	form_class = SmackEventForm
 	success_url = '/events'
 
-class SmackPostListView(ListView):
+class SmackPostListView(ListView): # NOT EVER USED
 	model = SmackPost
 	context_object_name = 'post_list'
+
+	def get_context_data(self, **kwargs):
+		context = super(SmackPostListView, self).get_context_data(**kwargs)
+		print "here"
+		context['post_list'] = SmackPost.objects.annotate(num_votes=Count('voting_users')).order_by('num_votes')
+		return context
 
 class SmackPostCreateView(FormView):
 	model = SmackPost
 	form_class = SmackPostForm
 	template_name = "smack/smackpost_form.html"
 	success_url = '/events'
-
-	# if request == 'POST':
-	# 	form_class = self.get_form_class()
-	# 	form = self.get_form(form_class)
-	# 	if form.is_valid():
-	# 		form.user = request.user
-	# 		self.form_valid(form, **kwargs)
-	# 	else: 
-	# 		forms.ValidationError("Invalid Location")
-
-	# def get_form_kwargs(self):
-	# 	kwargs = super(SmackPostCreateView, self).get_form_kwargs()
-	# 	kwargs['user'] = self.request.user
-	# 	print kwargs
-	# 	return kwargs
 
 	def form_valid(self, form):
 		print "in form"
@@ -112,18 +113,10 @@ def vote(request, pk):
     if request.method == 'POST':
 
         if request.user.is_authenticated:
-            # vote_form = VoteForm(request.POST)
-            # if vote_form.is_valid():
             smacker = Smacker.objects.get(user=request.user)
-            post = SmackPost.objects.get(pk=pk)
-            # v = vote_form.save(commit=False)
-            # v.voter = user.user
-            # v.post = post
-            # if post.
-            
+            post = SmackPost.objects.get(pk=pk)            
 
-            post.vote_count = post.vote_count + 1
-
+            # check if user has voted
             if not post.voting_users.filter(user_id = smacker.user_id).exists():
                 post.voting_users.add(smacker)
                 post.save()
@@ -131,12 +124,19 @@ def vote(request, pk):
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
             
             return HttpResponse("Already Voted")
-            # return HttpResponse(
-            #     json.dumps(post.post),
-            #     content_type="application/json"
-            # )
 
+def delete_vote(request, pk):
+	if request.method == 'POST':
+		if request.user.is_authenticated:
+			smacker = Smacker.objects.get(user=request.user)
+			post = SmackPost.objects.get(pk=pk)
 
+			if post.voting_users.filter(user_id = smacker.user_id).exists():
+				post.voting_users.remove(smacker)
+				post.save()
+				return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+			return HttpResponse("You must like to unlike")
 
 
 """ USER VIEWS """

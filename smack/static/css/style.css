@@ -1,3 +1,17 @@
 body {
 	padding-top: 60px;
 }
+.post {
+	margin: 10px;
+	border: 1px solid gray;
+	background-color: #ccc
+}
+.post button {
+	margin: 5px;
+}
+.post span {
+	margin: 5px;
+}
+.post p {
+	margin: 5px;
+}

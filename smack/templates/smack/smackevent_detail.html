@@ -2,23 +2,35 @@
 {% load staticfiles %}
 {% block content %}
 
-<p>name: {{ event.name }}</p>
-<p>Long: {{ event.lon }}</p>
-<p>Lat: {{ event.lat }}</p>
-<p>City: {{ event.city }}</p>
-<h3>Smack Talk</h3>
-{% for smack_post in event.smackpost_set.all %}
-	<p>{{ smack_post.post }}</p>
-	<form method="post" action="{% url 'vote' pk=smack_post.pk %} " id="vote-form" class="vote_form">
-	  <li> <span id="vote-count">{{ smack_post.vote_count }}</span>
-		  {% csrf_token %}
-		  <input type="hidden" id="id_link" name="post" class="hidden_id" value="{{ smack_post.pk }}" />
-		  <input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}" />
-		  {% if user.is_authenticated and not smack_post.pk in user.smacker.post_votes %}
-  		  	<button type="submit">Up</button>
-  		  {% endif %}
-	  </li>
-    </form>
+<h1>Event: {{ event.name }}</h1>
+<h5>{{ event.city }}</h5>
+
+{% for smack_post in post_list %}
+	<div class="post col-md-12">
+		<div class="row">
+		<p class="col-md-6">{{ smack_post.post }}</p>
+		  	<span class="pull-right" id="vote-count">  {{ smack_post.post_votes }} </span>
+	  		{% if user.is_authenticated and not smack_post.pk in user.smacker.post_votes %}
+	  			<form method="post" action="{% url 'like' pk=smack_post.pk %} " id="vote-form" class="vote_form">
+		  		{% csrf_token %}
+		  		<input type="hidden" id="id_link" name="post" class="hidden_id" value="{{ smack_post.pk }}" />
+		  		<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}" />
+				<button class="pull-right" type="submit">Like</button>
+				</form>
+			{% else %}
+				<form method="post" action="{% url 'unlike' pk=smack_post.pk %} " id="vote-form" class="vote_form">
+		  		{% csrf_token %}
+		  		<input type="hidden" id="id_link" name="post" class="hidden_id" value="{{ smack_post.pk }}" />
+		  		<input type="hidden" id="id_voter" name="voter" class="hidden_id" value="{{ user.pk }}" />
+				<button class="pull-right" type="submit">Unlike</button>
+				</form>
+	  		{% endif %}	
+	  	</div>
+	  	<div class="row">
+	  		<p class="post-user">By: {{ smack_post.user.username }}</p>
+	  	</div>
+	  		 	
+    </div>
 {% endfor %}
 
 

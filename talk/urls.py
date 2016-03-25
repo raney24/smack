@@ -32,7 +32,8 @@ urlpatterns = [
 
     url(r'^events/(?P<pk>\d+)/post/$', login_required(SmackPostCreateView.as_view()), name='create_posts'),
 
-    url(r'^vote/(?P<pk>\d+)$', login_required(vote), name="vote"),
+    url(r'^vote/(?P<pk>\d+)$', login_required(vote), name="like"),
+    url(r'^delete_vote/(?P<pk>\d+)$', login_required(delete_vote), name="unlike"),
 
 
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),

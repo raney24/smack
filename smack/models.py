@@ -36,7 +36,6 @@ class SmackPost(models.Model):
 	event = models.ForeignKey(SmackEvent, blank=True)
 	user = models.ForeignKey(User, blank=True)
 	voting_users = models.ManyToManyField('Smacker')
-	vote_count = models.IntegerField(default=0) # create read only object
 
 	objects = models.Manager()
 
@@ -52,8 +51,17 @@ class SmackPost(models.Model):
 		else:
 			raise forms.ValidationError("Invalid Location")	
 
+	def post_votes(self):
+		return self.voting_users.count()
+
 	class Meta:
-		ordering = ['-vote_count']
+		pass
+
+
+	# def get_readonly_fields(self, request, obj=None):
+	# 	if obj is None:
+	# 		return ['vote_count']
+	# 	return []
 
 	def __unicode__(self):
 		return self.post
